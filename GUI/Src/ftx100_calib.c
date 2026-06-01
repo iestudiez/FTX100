@@ -167,7 +167,7 @@ bool ftx100Calib_Done(GUI_FTX100Calib_t *calibScreen)
 	*calibScreen->pCalibDone = false;
 	*calibScreen->pProgressBar = 0;
 
-	// Give execution control to the return address
+	// Transfer execution control to the return graphical component.
 	GUI_TransferControl(&calibScreen->priv.status, &InputBox_CalibValue.priv.status);
 	GUI_InputBox_DefaultPointer = &InputBox_CalibValue;
 	return true;
