@@ -8,6 +8,7 @@
  ******************************************************************************
  */
 
+#include "stdio.h"
 #include "keyboard.h"
 #include "ftx100_calib.h"
 #include "gui_utils.h"
@@ -16,6 +17,18 @@
 #include "stdbool.h"
 #include "input_box.h"
 #include "app.h"
+#include "fonts.h"
+#include "system_cx100.h"
+
+// Defines
+// ----------------------------------------------------------------------------
+#define CALIB_PGR_BAR_X1		3
+#define CALIB_PGR_BAR_Y1		19
+#define CALIB_PGR_BAR_X2		124
+#define CALIB_PGR_BAR_Y2		28
+#define CALIB_TXT_YPOS 			37
+#define CALIB_PWM_XPOS 			59
+#define CALIB_REV_XPOS			100
 
 // Public variables
 // ----------------------------------------------------------------------------
@@ -132,19 +145,42 @@ bool ftx100Calib_KeyActions(GUI_FTX100Calib_t *calibScreen)
  */
 void ftx100Calib_Draw(GUI_FTX100Calib_t *calibScreen)
 {
+	char sTxtBox[10];
+	uint8_t xPos;
+	uint8_t revolutions;
+
 	// Reset redraw flag
 	calibScreen->priv.redraw = false;
 
 	// Clear LCD_Buffer and print calibration screen
 	GLCD_ScreenBitmap(FTX100Calib_Screen_128x64);
 
+	// Delay for the "ScreenBitmap" DMA transfer to finish drawing the screen
+	SYSTEM_Delay(5);
+
+	// Calculate revolutions
+	if (*calibScreen->pStart)
+		revolutions = *calibScreen->pProgressBar;
+	else
+		revolutions = 100;
+
+	// Current number of revolutions
+	sprintf(sTxtBox, "%d", (int) revolutions);
+	GUI_DecimalPoint(sTxtBox, 1);
+	xPos = CALIB_REV_XPOS - GLCD_TextWidth(sTxtBox, Font_NumVerdanaBlack, 1);
+	GLCD_DrawText(sTxtBox, xPos, CALIB_TXT_YPOS, Font_NumVerdanaBlack, 1, 1);
+
+	// Print PWM value
+	sprintf(sTxtBox, "%d", (int) *calibScreen->pCalibPwm);
+	xPos = CALIB_PWM_XPOS - GLCD_TextWidth(sTxtBox, Font_NumVerdanaBlack, 1);
+	GLCD_DrawText(sTxtBox, xPos, CALIB_TXT_YPOS, Font_NumVerdanaBlack, 1, 1);
+
 	// Draw progress bar
-	GLCD_ProgressBar(3, 19, 124, 28, *calibScreen->pProgressBar);
+	GLCD_ProgressBar(CALIB_PGR_BAR_X1, CALIB_PGR_BAR_Y1, CALIB_PGR_BAR_X2, CALIB_PGR_BAR_Y2, *calibScreen->pProgressBar);
 
 	// Indicate if the calibration process has started.
 	if (*calibScreen->pStart)
 		GLCD_PutBitmap(45, 51, FTX100IconCalibStop, 1);
-
 }
 
 /**
@@ -157,8 +193,18 @@ void ftx100Calib_Draw(GUI_FTX100Calib_t *calibScreen)
  */
 bool ftx100Calib_Done(GUI_FTX100Calib_t *calibScreen)
 {
+	static bool fillProgressBar = true;
+
 	if (*calibScreen->pCalibDone == false)
 		return false;
+
+	// Fill the progress bar when calibration is complete.
+	if (fillProgressBar)
+	{
+		fillProgressBar = false;
+		GLCD_DrawBox(CALIB_PGR_BAR_X1, CALIB_PGR_BAR_Y1, CALIB_PGR_BAR_X2, CALIB_PGR_BAR_Y2, 1);
+		return true;
+	}
 
 	// Reset status variables
 	calibScreen->priv.redraw = true;
@@ -166,6 +212,8 @@ bool ftx100Calib_Done(GUI_FTX100Calib_t *calibScreen)
 	*calibScreen->pStart = false;
 	*calibScreen->pCalibDone = false;
 	*calibScreen->pProgressBar = 0;
+
+	fillProgressBar = true;
 
 	// Transfer execution control to the return graphical component.
 	GUI_TransferControl(&calibScreen->priv.status, &InputBox_CalibValue.priv.status);

@@ -66,6 +66,7 @@ void GUI_Init(void)
 	FTX100_CalibScreen.pProgressBar = &APP_CalibProgress;
 	FTX100_CalibScreen.pEnabled = &APP_CalibScreen;
 	FTX100_CalibScreen.pStart = &APP_CalibStart;
+	FTX100_CalibScreen.pCalibPwm = &APP_CalibPwm;
 
 	// ------------------------------------------------------------------------
 	// MAIN MENU

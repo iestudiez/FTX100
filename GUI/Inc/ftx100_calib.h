@@ -39,6 +39,7 @@ typedef struct GUI_FTX100Calib_t
 {
 	FTX100CalibPrivate_t priv;
 	uint8_t *pProgressBar;
+	uint16_t *pCalibPwm;
 	bool *pEnabled;
 	bool *pStart;
 	bool *pCalibDone;
