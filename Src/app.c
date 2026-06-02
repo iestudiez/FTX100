@@ -274,21 +274,22 @@ void app_SaveConfiguration(void)
 	EEPROM_StoreWord(&APP_Eeprom[2], APP_DosePreset2);
 	EEPROM_StoreWord(&APP_Eeprom[4], APP_DosePreset3);
 	EEPROM_StoreWord(&APP_Eeprom[6], APP_DosePreset4);
+	EEPROM_StoreWord(&APP_Eeprom[8], APP_DosePreset5);
 
-	EEPROM_StoreWord(&APP_Eeprom[8], APP_PidMaxInt);
-	EEPROM_StoreWord(&APP_Eeprom[10], APP_PidOffset);
-	EEPROM_StoreWord(&APP_Eeprom[12], APP_PidKp);
-	EEPROM_StoreWord(&APP_Eeprom[14], APP_PidKi);
-	EEPROM_StoreWord(&APP_Eeprom[16], APP_PidKd);
+	EEPROM_StoreWord(&APP_Eeprom[10], APP_PidMaxInt);
+	EEPROM_StoreWord(&APP_Eeprom[12], APP_PidOffset);
+	EEPROM_StoreWord(&APP_Eeprom[14], APP_PidKp);
+	EEPROM_StoreWord(&APP_Eeprom[16], APP_PidKi);
+	EEPROM_StoreWord(&APP_Eeprom[18], APP_PidKd);
 
-	EEPROM_StoreWord(&APP_Eeprom[18], APP_Wingspan);
-	EEPROM_StoreWord(&APP_Eeprom[20], APP_MotorPulses);
-	EEPROM_StoreWord(&APP_Eeprom[22], APP_TurbinePulses);
+	EEPROM_StoreWord(&APP_Eeprom[20], APP_Wingspan);
+	EEPROM_StoreWord(&APP_Eeprom[22], APP_MotorPulses);
+	EEPROM_StoreWord(&APP_Eeprom[24], APP_TurbinePulses);
 
-	EEPROM_StoreWord(&APP_Eeprom[24], APP_CalibValue);
-	APP_Eeprom[26] = APP_NumNozzles;
-	APP_Eeprom[27] = APP_DoseSelectedPreset;
-	APP_Eeprom[31] = APP_MinSpeed;
+	EEPROM_StoreWord(&APP_Eeprom[26], APP_CalibValue);
+	APP_Eeprom[28] = APP_NumNozzles;
+	APP_Eeprom[29] = APP_DoseSelectedPreset;
+	APP_Eeprom[30] = (uint8_t) APP_MinSpeed;
 
 	// Save data to EEPROM
 	EEPROM_Write(EEPROM_GetPageAddress(APP_EEPROM_CONFIG_PAGE), APP_Eeprom, APP_EEPROM_BUFF_SIZE);
@@ -312,21 +313,23 @@ void app_LoadConfiguration(void)
 	APP_DosePreset2 = EEPROM_GetWord(&APP_Eeprom[2]);
 	APP_DosePreset3 = EEPROM_GetWord(&APP_Eeprom[4]);
 	APP_DosePreset4 = EEPROM_GetWord(&APP_Eeprom[6]);
+	APP_DosePreset5 = EEPROM_GetWord(&APP_Eeprom[8]);
 
-	APP_PidMaxInt = EEPROM_GetWord(&APP_Eeprom[8]);
-	APP_PidOffset = EEPROM_GetWord(&APP_Eeprom[10]);
-	APP_PidKp = EEPROM_GetWord(&APP_Eeprom[12]);
-	APP_PidKi = EEPROM_GetWord(&APP_Eeprom[14]);
-	APP_PidKd = EEPROM_GetWord(&APP_Eeprom[16]);
 
-	APP_Wingspan = EEPROM_GetWord(&APP_Eeprom[18]);
-	APP_MotorPulses = EEPROM_GetWord(&APP_Eeprom[20]);
-	APP_TurbinePulses = EEPROM_GetWord(&APP_Eeprom[22]);
+	APP_PidMaxInt = EEPROM_GetWord(&APP_Eeprom[10]);
+	APP_PidOffset = EEPROM_GetWord(&APP_Eeprom[12]);
+	APP_PidKp = EEPROM_GetWord(&APP_Eeprom[14]);
+	APP_PidKi = EEPROM_GetWord(&APP_Eeprom[16]);
+	APP_PidKd = EEPROM_GetWord(&APP_Eeprom[18]);
 
-	APP_CalibValue = EEPROM_GetWord(&APP_Eeprom[24]);
-	APP_NumNozzles = APP_Eeprom[26];
-	APP_DoseSelectedPreset = APP_Eeprom[27];
-	APP_MinSpeed = APP_Eeprom[31];
+	APP_Wingspan = EEPROM_GetWord(&APP_Eeprom[20]);
+	APP_MotorPulses = EEPROM_GetWord(&APP_Eeprom[22]);
+	APP_TurbinePulses = EEPROM_GetWord(&APP_Eeprom[24]);
+
+	APP_CalibValue = EEPROM_GetWord(&APP_Eeprom[26]);
+	APP_NumNozzles = APP_Eeprom[28];
+	APP_DoseSelectedPreset = APP_Eeprom[29];
+	APP_MinSpeed = (uint16_t) APP_Eeprom[30];
 }
 
 /**

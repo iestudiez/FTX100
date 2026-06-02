@@ -64,8 +64,7 @@ int main()
 
 /**
  * -----------------------------------------------------------------------------
- * @brief	User Interface Task.
- * 		(200 milliseconds period)
+ * @brief	User Interface Task (200 milliseconds period)
  * -----------------------------------------------------------------------------
  */
 void UI_Update(void)

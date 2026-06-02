@@ -22,13 +22,17 @@
 
 // Defines
 // ----------------------------------------------------------------------------
-#define CALIB_PGR_BAR_X1		3
-#define CALIB_PGR_BAR_Y1		19
-#define CALIB_PGR_BAR_X2		124
-#define CALIB_PGR_BAR_Y2		28
-#define CALIB_TXT_YPOS 			37
-#define CALIB_PWM_XPOS 			59
-#define CALIB_REV_XPOS			100
+#define CALIB_PGR_BAR_X1			3
+#define CALIB_PGR_BAR_Y1			19
+#define CALIB_PGR_BAR_X2			124
+#define CALIB_PGR_BAR_Y2			28
+#define CALIB_TXT_YPOS 				36
+#define CALIB_PWM_XPOS 				59
+#define CALIB_REV_XPOS				102
+#define CALIB_PWM_INC				25
+#define CALIB_PWM_MIN				100
+#define CALIB_PWM_MAX				500
+#define CALIB_MAX_REVOLUTIONS		100
 
 // Public variables
 // ----------------------------------------------------------------------------
@@ -40,6 +44,7 @@ void ftx100Calib_Init(GUI_FTX100Calib_t *calibScreen);
 bool ftx100Calib_Done(GUI_FTX100Calib_t *calibScreen);
 bool ftx100Calib_KeyActions(GUI_FTX100Calib_t *calibScreen);
 void ftx100Calib_Draw(GUI_FTX100Calib_t *calibScreen);
+void ftx100_TxtBox(uint16_t value, uint8_t x, uint8_t decPos);
 
 /**
  * -----------------------------------------------------------------------------
@@ -132,6 +137,14 @@ bool ftx100Calib_KeyActions(GUI_FTX100Calib_t *calibScreen)
 	if (KEYBOARD_Event.Pwr == 1)
 		*calibScreen->pStart = true;
 
+	// Key Up
+	if ((KEYBOARD_Event.N2_Up == 1) && *calibScreen->pCalibPwm < CALIB_PWM_MAX)
+		*calibScreen->pCalibPwm += CALIB_PWM_INC;
+
+	// Key Down
+	if ((KEYBOARD_Event.N5_Down == 1) && *calibScreen->pCalibPwm > CALIB_PWM_MIN)
+		*calibScreen->pCalibPwm -= CALIB_PWM_INC;
+
 	calibScreen->priv.redraw = true;
 	return false;
 }
@@ -145,9 +158,7 @@ bool ftx100Calib_KeyActions(GUI_FTX100Calib_t *calibScreen)
  */
 void ftx100Calib_Draw(GUI_FTX100Calib_t *calibScreen)
 {
-	char sTxtBox[10];
-	uint8_t xPos;
-	uint8_t revolutions;
+	uint16_t revolutions;
 
 	// Reset redraw flag
 	calibScreen->priv.redraw = false;
@@ -162,18 +173,13 @@ void ftx100Calib_Draw(GUI_FTX100Calib_t *calibScreen)
 	if (*calibScreen->pStart)
 		revolutions = *calibScreen->pProgressBar;
 	else
-		revolutions = 100;
+		revolutions = CALIB_MAX_REVOLUTIONS;
 
-	// Current number of revolutions
-	sprintf(sTxtBox, "%d", (int) revolutions);
-	GUI_DecimalPoint(sTxtBox, 1);
-	xPos = CALIB_REV_XPOS - GLCD_TextWidth(sTxtBox, Font_NumVerdanaBlack, 1);
-	GLCD_DrawText(sTxtBox, xPos, CALIB_TXT_YPOS, Font_NumVerdanaBlack, 1, 1);
+	// Print current number of revolutions
+	ftx100_TxtBox(revolutions, CALIB_REV_XPOS, 1);
 
 	// Print PWM value
-	sprintf(sTxtBox, "%d", (int) *calibScreen->pCalibPwm);
-	xPos = CALIB_PWM_XPOS - GLCD_TextWidth(sTxtBox, Font_NumVerdanaBlack, 1);
-	GLCD_DrawText(sTxtBox, xPos, CALIB_TXT_YPOS, Font_NumVerdanaBlack, 1, 1);
+	ftx100_TxtBox(*calibScreen->pCalibPwm, CALIB_PWM_XPOS, 0);
 
 	// Draw progress bar
 	GLCD_ProgressBar(CALIB_PGR_BAR_X1, CALIB_PGR_BAR_Y1, CALIB_PGR_BAR_X2, CALIB_PGR_BAR_Y2, *calibScreen->pProgressBar);
@@ -203,6 +209,11 @@ bool ftx100Calib_Done(GUI_FTX100Calib_t *calibScreen)
 	{
 		fillProgressBar = false;
 		GLCD_DrawBox(CALIB_PGR_BAR_X1, CALIB_PGR_BAR_Y1, CALIB_PGR_BAR_X2, CALIB_PGR_BAR_Y2, 1);
+
+		// Print the target number of revolutions
+		GLCD_DrawBox(69, 34, 100, 47, 0);
+		ftx100_TxtBox(CALIB_MAX_REVOLUTIONS, CALIB_REV_XPOS, 1);
+
 		return true;
 	}
 
@@ -219,4 +230,28 @@ bool ftx100Calib_Done(GUI_FTX100Calib_t *calibScreen)
 	GUI_TransferControl(&calibScreen->priv.status, &InputBox_CalibValue.priv.status);
 	GUI_InputBox_DefaultPointer = &InputBox_CalibValue;
 	return true;
+}
+
+/**
+ * ----------------------------------------------------------------------------
+ * @brief 			Print a text box
+ * ----------------------------------------------------------------------------
+ * @param value		Value to print
+ * @param x			Horizontal position
+ * @param decPos	Number of decimal places
+ * ----------------------------------------------------------------------------
+ */
+void ftx100_TxtBox(uint16_t value, uint8_t x, uint8_t decPos)
+{
+	char sTxtBox[10];
+	uint8_t xPos;
+
+	sprintf(sTxtBox, "%d", (int) value);
+
+	if (decPos)
+		GUI_DecimalPoint(sTxtBox, decPos);
+
+	xPos = x - GLCD_TextWidth(sTxtBox, Font_NumVerdanaBlack, 1);
+
+	GLCD_DrawText(sTxtBox, xPos, CALIB_TXT_YPOS, Font_NumVerdanaBlack, 1, 1);
 }

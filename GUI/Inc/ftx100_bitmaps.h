@@ -33,4 +33,7 @@ extern const unsigned char FTX100Info_Screen_128x64[];
 extern const unsigned char FTX100IconCheckOk[];
 extern const unsigned char FTX100IconCheckFail[];
 
+// System version screen
+extern const unsigned char FTX100Version_Screen_128x64[];
+
 #endif /* INC_FTX100_BITMAPS_H_ */

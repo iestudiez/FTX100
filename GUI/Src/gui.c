@@ -15,6 +15,7 @@
 
 #include "stddef.h"
 #include "gui_utils.h"
+#include "pwrboard.h"
 #include "menu_list.h"
 #include "input_box.h"
 #include "list_box.h"
@@ -22,6 +23,8 @@
 #include "app.h"
 #include "ftx100_main.h"
 #include "ftx100_calib.h"
+#include "ftx100_info.h"
+#include "ftx100_version.h"
 
 // ----------------------------------------------------------------------------
 // Components of the graphical user interface
@@ -33,7 +36,8 @@ GUI_ListBox_t ListBox_Pid;
 GUI_MsgBox_t MsgBox_SaveConf;
 GUI_FTX100App_t FTX100_MainScreen;
 GUI_FTX100Calib_t FTX100_CalibScreen;
-
+GUI_FTX100Info_t FTX100_InfoScreen;
+GUI_FTX100Version_t FTX100_VersionScreen;
 // ----------------------------------------------------------------------------
 
 /**
@@ -69,6 +73,15 @@ void GUI_Init(void)
 	FTX100_CalibScreen.pCalibPwm = &APP_CalibPwm;
 
 	// ------------------------------------------------------------------------
+	// FTX100 INFO SCREEN
+	// ------------------------------------------------------------------------
+	FTX100_InfoScreen.pRet = &MenuList_MainMenu;
+	FTX100_InfoScreen.pVoltage = &PowerBoard.Status.VBus;
+	FTX100_InfoScreen.pTemp = &PowerBoard.Status.Temp;
+	FTX100_InfoScreen.pCurrent = &PowerBoard.Status.Current;
+	FTX100_InfoScreen.pErrorCode = &APP_ErrorCode;
+
+	// ------------------------------------------------------------------------
 	// MAIN MENU
 	// ------------------------------------------------------------------------
 	MenuList_MainMenu.sTitle = "MENU PRINCIPAL";
@@ -80,13 +93,15 @@ void GUI_Init(void)
 	MenuList_MainMenu.item[2].label = "CALIBRACION";
 	MenuList_MainMenu.item[2].run = &FTX100_CalibScreen;
 	MenuList_MainMenu.item[3].label = "INFO SISTEMA";
-	MenuList_MainMenu.item[3].run = NULL;
+	MenuList_MainMenu.item[3].run = &FTX100_InfoScreen;
 	MenuList_MainMenu.item[4].label = "CONFIGURACION GENERAL";
 	MenuList_MainMenu.item[4].run = &ListBox_Config;
 	MenuList_MainMenu.item[5].label = "CONFIGURACION PID";
 	MenuList_MainMenu.item[5].run = &ListBox_Pid;
 	MenuList_MainMenu.item[6].label = "GUARDAR CONFIGURACION";
 	MenuList_MainMenu.item[6].run = &MsgBox_SaveConf;
+	MenuList_MainMenu.item[7].label = "VERSION";
+	MenuList_MainMenu.item[7].run = &FTX100_VersionScreen;
 
 	// ------------------------------------------------------------------------
 	// LISTBOX DOSES
@@ -145,50 +160,59 @@ void GUI_Init(void)
 	ListBox_Config.sTitle = "CONFIGURACION GENERAL";
 	ListBox_Config.pRet = &MenuList_MainMenu;
 
-	// Labor width
-	ListBox_Config.item[0].sTile = "ANCHO LABOR";
-	ListBox_Config.item[0].pInputVar = &APP_Wingspan;
+	// Calibration value
+	ListBox_Config.item[0].sTile = "VALOR CALIBRACION";
+	ListBox_Config.item[0].pInputVar = &APP_CalibValue;
 	ListBox_Config.item[0].dataType = GUI_UINT16;
-	ListBox_Config.item[0].maxValue = 500;
-	ListBox_Config.item[0].decimalPos = 1;
-	ListBox_Config.item[0].numDigits = 3;
-	ListBox_Config.item[0].sUnit = "m";
+	ListBox_Config.item[0].maxValue = 5000;
+	ListBox_Config.item[0].decimalPos = 0;
+	ListBox_Config.item[0].numDigits = 4;
+	ListBox_Config.item[0].sUnit = "g";
 
-	// Number of nozzles
-	ListBox_Config.item[1].sTile = "NUMERO DE BOQUILLAS";
-	ListBox_Config.item[1].pInputVar = &APP_NumNozzles;
+	// Labor width
+	ListBox_Config.item[1].sTile = "ANCHO LABOR";
+	ListBox_Config.item[1].pInputVar = &APP_Wingspan;
 	ListBox_Config.item[1].dataType = GUI_UINT16;
 	ListBox_Config.item[1].maxValue = 500;
-	ListBox_Config.item[1].decimalPos = 0;
+	ListBox_Config.item[1].decimalPos = 1;
 	ListBox_Config.item[1].numDigits = 3;
-	ListBox_Config.item[1].sUnit = " ";
+	ListBox_Config.item[1].sUnit = "m";
 
-	// Turbine, pulses per revolution
-	ListBox_Config.item[2].sTile = "PULSOS TURBINA";
-	ListBox_Config.item[2].pInputVar = &APP_TurbinePulses;
+	// Number of nozzles
+	ListBox_Config.item[2].sTile = "NUM. DE BOQUILLAS";
+	ListBox_Config.item[2].pInputVar = &APP_NumNozzles;
 	ListBox_Config.item[2].dataType = GUI_UINT16;
-	ListBox_Config.item[2].maxValue = 900;
+	ListBox_Config.item[2].maxValue = 500;
 	ListBox_Config.item[2].decimalPos = 0;
 	ListBox_Config.item[2].numDigits = 3;
-	ListBox_Config.item[2].sUnit = "P/Rev";
+	ListBox_Config.item[2].sUnit = " ";
 
-	// Motor, pulses per revolution
+	// Turbine, pulses per revolution
 	ListBox_Config.item[3].sTile = "PULSOS TURBINA";
-	ListBox_Config.item[3].pInputVar = &APP_MotorPulses;
+	ListBox_Config.item[3].pInputVar = &APP_TurbinePulses;
 	ListBox_Config.item[3].dataType = GUI_UINT16;
 	ListBox_Config.item[3].maxValue = 900;
 	ListBox_Config.item[3].decimalPos = 0;
 	ListBox_Config.item[3].numDigits = 3;
 	ListBox_Config.item[3].sUnit = "P/Rev";
 
-	// Minimum speed
-	ListBox_Config.item[4].sTile = "VELOCIDAD MINIMA";
-	ListBox_Config.item[4].pInputVar = &APP_MinSpeed;
+	// Motor, pulses per revolution
+	ListBox_Config.item[4].sTile = "PULSOS MOTOR";
+	ListBox_Config.item[4].pInputVar = &APP_MotorPulses;
 	ListBox_Config.item[4].dataType = GUI_UINT16;
-	ListBox_Config.item[4].maxValue = 100;
-	ListBox_Config.item[4].decimalPos = 1;
+	ListBox_Config.item[4].maxValue = 900;
+	ListBox_Config.item[4].decimalPos = 0;
 	ListBox_Config.item[4].numDigits = 3;
-	ListBox_Config.item[4].sUnit = "Km/h";
+	ListBox_Config.item[4].sUnit = "P/Rev";
+
+	// Minimum speed
+	ListBox_Config.item[5].sTile = "VELOCIDAD MINIMA";
+	ListBox_Config.item[5].pInputVar = &APP_MinSpeed;
+	ListBox_Config.item[5].dataType = GUI_UINT16;
+	ListBox_Config.item[5].maxValue = 100;
+	ListBox_Config.item[5].decimalPos = 1;
+	ListBox_Config.item[5].numDigits = 3;
+	ListBox_Config.item[5].sUnit = "Km/h";
 
 	// ------------------------------------------------------------------------
 	// LISTBOX PID CONFIGURATION
@@ -244,6 +268,17 @@ void GUI_Init(void)
 	MsgBox_SaveConf.sMsgLine1 = "Guardar";
 	MsgBox_SaveConf.sMsgLine2 = "configuracion?";
 	MsgBox_SaveConf.pValue = &APP_SaveConfigRequest;
+
+	// ------------------------------------------------------------------------
+	// SHOW VERSION SCREEN
+	// ------------------------------------------------------------------------
+	FTX100_VersionScreen.pRet = &MenuList_MainMenu;
+	;
+	FTX100_VersionScreen.sCustomer = "ALTINA";
+	FTX100_VersionScreen.sSoftware = "FTX100.VER.0.20";
+	FTX100_VersionScreen.sFirmware = "CX100.VER.0.20";
+	FTX100_VersionScreen.sHardware1 = "HE-PLAC-CX100C_A1";
+	FTX100_VersionScreen.sHardware2 = "HE-PLAC-CX100P_B1";
 }
 
 /**
@@ -255,11 +290,13 @@ void GUI_Update(void)
 {
 	GUI_FTX100MainScreen(&FTX100_MainScreen);
 	GUI_FTX100CalibScreen(&FTX100_CalibScreen);
+	GUI_FTX100InfoScreen(&FTX100_InfoScreen);
 	GUI_MenuList(&MenuList_MainMenu);
 	GUI_ListBox(&ListBox_Doses);
 	GUI_ListBox(&ListBox_Config);
 	GUI_ListBox(&ListBox_Pid);
 	GUI_MsgBox(&MsgBox_SaveConf);
+	GUI_FTX100VersionScreen(&FTX100_VersionScreen);
 
 	// Run all input boxes
 	GUI_InputBox(GUI_InputBox_DefaultPointer);
