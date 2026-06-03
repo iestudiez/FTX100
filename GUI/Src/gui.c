@@ -277,8 +277,8 @@ void GUI_Init(void)
 	FTX100_VersionScreen.sCustomer = "ALTINA";
 	FTX100_VersionScreen.sSoftware = "FTX100.VER.0.20";
 	FTX100_VersionScreen.sFirmware = "CX100.VER.0.20";
-	FTX100_VersionScreen.sHardware1 = "HE-PLAC-CX100C_A1";
-	FTX100_VersionScreen.sHardware2 = "HE-PLAC-CX100P_B1";
+	FTX100_VersionScreen.sHardware1 = "HE-PLAC-CX100C_B1";
+	FTX100_VersionScreen.sHardware2 = "HE-PLAC-CX100P_A1";
 }
 
 /**

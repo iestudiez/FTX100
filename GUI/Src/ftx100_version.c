@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file        : ftx100_about.c
+ * @file        : ftx100_version.c
  * @author      : Ivan.Estudiez
  * @brief       : Version information screen
  * @date        : 2 jun 2026

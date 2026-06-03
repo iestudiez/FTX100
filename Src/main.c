@@ -82,11 +82,9 @@ void UI_Update(void)
 void COMM_Update(void)
 {
 	// RS233 Communications
-	// --------------------------------------
 	GNSS_Update();
 
 	// CAN Communications (RX)
-	// --------------------------------------
 	// CAN_ReadMsg(CAN1, &gCanMsgRx);
 }
 

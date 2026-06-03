@@ -23,10 +23,10 @@
 // Defines
 // ----------------------------------------------------------------------------
 #define CALIB_PGR_BAR_X1			3
-#define CALIB_PGR_BAR_Y1			19
+#define CALIB_PGR_BAR_Y1			15
 #define CALIB_PGR_BAR_X2			124
-#define CALIB_PGR_BAR_Y2			28
-#define CALIB_TXT_YPOS 				36
+#define CALIB_PGR_BAR_Y2			24
+#define CALIB_TXT_YPOS 				32
 #define CALIB_PWM_XPOS 				59
 #define CALIB_REV_XPOS				102
 #define CALIB_PWM_INC				25
@@ -103,7 +103,7 @@ void ftx100Calib_Init(GUI_FTX100Calib_t *calibScreen)
 	InputBox_CalibValue.sUnit = "gramos";
 	InputBox_CalibValue.maxValue = CALIBRATION_MAX_VALUE;
 	InputBox_CalibValue.xPos = 26;
-	InputBox_CalibValue.yPos = 15;
+	InputBox_CalibValue.yPos = 11;
 
 	calibScreen->priv.init = true;
 	calibScreen->priv.redraw = true;
@@ -186,7 +186,7 @@ void ftx100Calib_Draw(GUI_FTX100Calib_t *calibScreen)
 
 	// Indicate if the calibration process has started.
 	if (*calibScreen->pStart)
-		GLCD_PutBitmap(45, 51, FTX100IconCalibStop, 1);
+		GLCD_PutBitmap(45, 50, FTX100IconCalibStop, 1);
 }
 
 /**
@@ -211,7 +211,7 @@ bool ftx100Calib_Done(GUI_FTX100Calib_t *calibScreen)
 		GLCD_DrawBox(CALIB_PGR_BAR_X1, CALIB_PGR_BAR_Y1, CALIB_PGR_BAR_X2, CALIB_PGR_BAR_Y2, 1);
 
 		// Print the target number of revolutions
-		GLCD_DrawBox(69, 34, 100, 47, 0);
+		GLCD_DrawBox(69, 31, 100, 43, 0);
 		ftx100_TxtBox(CALIB_MAX_REVOLUTIONS, CALIB_REV_XPOS, 1);
 
 		return true;
