@@ -100,7 +100,7 @@ void ftx100Calib_Init(GUI_FTX100Calib_t *calibScreen)
 	InputBox_CalibValue.dataType = GUI_UINT16;
 	InputBox_CalibValue.decimalPos = 0;
 	InputBox_CalibValue.numDigits = 4;
-	InputBox_CalibValue.sUnit = "gramos";
+	InputBox_CalibValue.sUnit = "g";
 	InputBox_CalibValue.maxValue = CALIBRATION_MAX_VALUE;
 	InputBox_CalibValue.xPos = 26;
 	InputBox_CalibValue.yPos = 11;
@@ -167,7 +167,7 @@ void ftx100Calib_Draw(GUI_FTX100Calib_t *calibScreen)
 	GLCD_ScreenBitmap(FTX100Calib_Screen_128x64);
 
 	// Delay for the "ScreenBitmap" DMA transfer to finish drawing the screen
-	SYSTEM_Delay(5);
+	SYSTEM_DelayUs(5);
 
 	// Calculate revolutions
 	if (*calibScreen->pStart)

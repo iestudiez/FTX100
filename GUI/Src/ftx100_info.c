@@ -116,7 +116,7 @@ void ftx100Info_Draw(GUI_FTX100Info_t *info)
 
 	// Draw Info Screen
 	GLCD_ScreenBitmap(FTX100Info_Screen_128x64);
-	SYSTEM_Delay(5);
+	SYSTEM_DelayUs(5);
 
 	// Text boxes section
 	// ========================================================================

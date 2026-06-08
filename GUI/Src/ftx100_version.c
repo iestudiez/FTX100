@@ -109,7 +109,7 @@ void ftx100Version_Draw(GUI_FTX100Version_t *info)
 
 	// Draw Info Screen
 	GLCD_ScreenBitmap(FTX100Version_Screen_128x64);
-	SYSTEM_Delay(5);
+	SYSTEM_DelayUs(5);
 
 	// Print customer name
 	// ------------------------------------------------------------------------

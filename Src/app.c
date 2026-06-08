@@ -21,7 +21,6 @@
 #include "gnss.h"
 #include "global.h"
 #include "spi.h"
-#include "debug.h"
 
 // Definitions
 // ----------------------------------------------------------------------------
@@ -315,7 +314,6 @@ void app_LoadConfiguration(void)
 	APP_DosePreset4 = EEPROM_GetWord(&APP_Eeprom[6]);
 	APP_DosePreset5 = EEPROM_GetWord(&APP_Eeprom[8]);
 
-
 	APP_PidMaxInt = EEPROM_GetWord(&APP_Eeprom[10]);
 	APP_PidOffset = EEPROM_GetWord(&APP_Eeprom[12]);
 	APP_PidKp = EEPROM_GetWord(&APP_Eeprom[14]);
@@ -501,7 +499,8 @@ void app_MachineSpeed(void)
 {
 #ifdef APP_DEBUG_MODE
 	if (!APP_SimuMode)
-		if ((GNSS_Rmc.mode == GNSS_RMC_MODE_A) | (GNSS_Rmc.mode == GNSS_RMC_MODE_D) | (GNSS_Rmc.mode == GNSS_RMC_MODE_E))
+		if ((GNSS_Rmc.mode == GNSS_RMC_MODE_A) | (GNSS_Rmc.mode == GNSS_RMC_MODE_D)
+				| (GNSS_Rmc.mode == GNSS_RMC_MODE_E))
 			APP_Speed = (GNSS_Rmc.speed) / 10;
 		else
 			APP_Speed = 0;
