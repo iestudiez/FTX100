@@ -41,8 +41,9 @@ int main()
 	SYSTEM_Init();
 	PWRBOARD_Init();
 	LCD_Init();
-	GUI_Init();
+	LCD_Clear();
 	GNSS_Init(GNSS_REFRESH_RATE_5HZ);
+	GUI_Init();
 	APP_Init();
 
 	// -------------------------------------------------------------------------
