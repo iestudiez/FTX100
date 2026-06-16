@@ -30,9 +30,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>CX100LIB_00.20</name>
+			<name>CX100LIB.0.20</name>
 			<type>2</type>
-			<location>C:/Src/STM32/CX100_SRC/CX100LIB_00.20</location>
+			<location>C:/Src/STM32/CX100LIB.0.20</location>
 		</link>
 	</linkedResources>
 </projectDescription>

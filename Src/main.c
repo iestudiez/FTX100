@@ -33,22 +33,19 @@
 // ----------------------------------------------------------------------------
 void UI_Update(void);
 void COMM_Update(void);
-void GPS_Init(void);
 
 int main()
 {
-	// -------------------------------------------------------------------------
 	// System Initialization
 	// -------------------------------------------------------------------------
 	SYSTEM_Init();
 	PWRBOARD_Init();
 	LCD_Init();
 	LCD_Clear();
-	GNSS_Init(GNSS_REFRESH_RATE_5HZ);
-	GUI_Init();
+	GNSS_Init();
 	APP_Init();
+	GUI_Init();
 
-	// -------------------------------------------------------------------------
 	// Task Scheduler Section
 	// -------------------------------------------------------------------------
 	SCHEDULER_Init();
@@ -57,7 +54,6 @@ int main()
 	SCHEDULER_AddTask(COMM_Update, 2, 10);
 	SCHEDULER_AddTask(APP_User, 3, 10);
 	SCHEDULER_AddTask(UI_Update, 4, 200);
-	SCHEDULER_AddTask(GPS_Init, 3007,0);
 	SCHEDULER_Start();
 
 	while (1)
@@ -90,13 +86,5 @@ void COMM_Update(void)
 
 	// CAN Communications (RX)
 	// CAN_ReadMsg(CAN1, &gCanMsgRx);
-}
-
-void GPS_Init(void)
-{
-	// Reduce output to only RMC
-	// -------------------------
-	printf("$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n");
-	printf("$PMTK220,200*2C\r\n");
 }
 

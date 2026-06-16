@@ -176,10 +176,10 @@ void APP_User(void)
 	if (PowerBoard.Freq[1].Mode != INPUT_FREQUENCY_MODE)
 		PowerBoard.Freq[1].Mode = INPUT_FREQUENCY_MODE;
 
-	// Set the machine speed
+	// Estimate machine speed
 	app_MachineSpeed();
 
-	// Calculate the setpoint
+	// Compute setpoint
 	app_RpmSetpoint();
 
 	// Perform PID control
@@ -188,7 +188,7 @@ void APP_User(void)
 	// Report error code
 	app_ErrorReport();
 
-	// Display values refresh rate
+	// Update values ​​for on-screen display
 	app_DisplayValues();
 
 	// Select the current dose

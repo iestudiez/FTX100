@@ -6,11 +6,6 @@
  * @date		: 07/05/2026
  * @version		: 1.0
  ******************************************************************************
- *
- *
- *
- *
- ******************************************************************************
  */
 
 #include "stddef.h"
@@ -220,37 +215,37 @@ void GUI_Init(void)
 	ListBox_Pid.sTitle = "CONFIGURACION PID";
 	ListBox_Pid.pRet = &MenuList_MainMenu;
 
-	// Maximum value of the integral term
-	ListBox_Pid.item[0].sTile = "MAX. INTEGRAL";
-	ListBox_Pid.item[0].pInputVar = &APP_PidMaxInt;
-	ListBox_Pid.item[0].dataType = GUI_UINT16;
-	ListBox_Pid.item[0].maxValue = 1000;
-	ListBox_Pid.item[0].decimalPos = 0;
-	ListBox_Pid.item[0].numDigits = 4;
-
 	// KP (Proportional term gain)
-	ListBox_Pid.item[1].sTile = "KP (PROPORCIONAL)";
-	ListBox_Pid.item[1].pInputVar = &APP_PidKp;
+	ListBox_Pid.item[0].sTile = "KP (PROPORCIONAL)";
+	ListBox_Pid.item[0].pInputVar = &APP_PidKp;
+	ListBox_Pid.item[0].dataType = GUI_INT32;
+	ListBox_Pid.item[0].maxValue = 10000;
+	ListBox_Pid.item[0].decimalPos = 0;
+	ListBox_Pid.item[0].numDigits = 5;
+
+	// KI (Integral term gain)
+	ListBox_Pid.item[1].sTile = "KI (INTEGRAL)";
+	ListBox_Pid.item[1].pInputVar = &APP_PidKi;
 	ListBox_Pid.item[1].dataType = GUI_INT32;
 	ListBox_Pid.item[1].maxValue = 10000;
 	ListBox_Pid.item[1].decimalPos = 0;
 	ListBox_Pid.item[1].numDigits = 5;
 
-	// KI (Integral term gain)
-	ListBox_Pid.item[2].sTile = "KI (INTEGRAL)";
-	ListBox_Pid.item[2].pInputVar = &APP_PidKi;
+	// KD (Derivative term gain)
+	ListBox_Pid.item[2].sTile = "KD (DERIVATIVO)";
+	ListBox_Pid.item[2].pInputVar = &APP_PidKd;
 	ListBox_Pid.item[2].dataType = GUI_INT32;
 	ListBox_Pid.item[2].maxValue = 10000;
 	ListBox_Pid.item[2].decimalPos = 0;
 	ListBox_Pid.item[2].numDigits = 5;
 
-	// KD (Derivative term gain)
-	ListBox_Pid.item[3].sTile = "KD (DERIVATIVO)";
-	ListBox_Pid.item[3].pInputVar = &APP_PidKd;
-	ListBox_Pid.item[3].dataType = GUI_INT32;
-	ListBox_Pid.item[3].maxValue = 10000;
+	// Maximum value of the integral term
+	ListBox_Pid.item[3].sTile = "MAX. INTEGRAL";
+	ListBox_Pid.item[3].pInputVar = &APP_PidMaxInt;
+	ListBox_Pid.item[3].dataType = GUI_UINT16;
+	ListBox_Pid.item[3].maxValue = 1000;
 	ListBox_Pid.item[3].decimalPos = 0;
-	ListBox_Pid.item[3].numDigits = 5;
+	ListBox_Pid.item[3].numDigits = 4;
 
 	// Offset
 	ListBox_Pid.item[4].sTile = "OFFSET";
