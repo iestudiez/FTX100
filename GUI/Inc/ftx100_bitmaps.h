@@ -21,6 +21,7 @@ extern const unsigned char FTX100IconDose5[];
 extern const unsigned char FTX100IconOn[];
 extern const unsigned char FTX100IconOff[];
 extern const unsigned char FTX100IconGpsOk[];
+extern const unsigned char FTX100IconGpsNotValid[];
 extern const unsigned char FTX100IconGpsError[];
 extern const unsigned char FTX100IconGpsSimu[];
 

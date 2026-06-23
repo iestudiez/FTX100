@@ -23,7 +23,6 @@
 
 // Definitions
 // ----------------------------------------------------------------------------
-#define APP_GNSS_TIMEOUT				(500U)
 #define APP_ERROR_PID					(0x01)
 #define APP_ERROR_GPS					(0x02)
 #define APP_ERROR_CAN					(0x04)

@@ -3,4 +3,4 @@ Binaries/
 .settings/
 .cproject
 .project
-FTX100_LIB.0.20.launch
+*.launch

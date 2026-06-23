@@ -152,6 +152,14 @@ const unsigned char FTX100IconGpsOk[] = {
 0x38, 0x44, 0x74, 0x00, 0x7C, 0x14, 0x08, 0x00, 0x48, 0x54, 0x24,
 };
 
+const unsigned char FTX100IconGpsNotValid[] = {
+// ------------------------------------
+/* Width */ 	11,
+/* Height */ 	8,
+// ------------------------------------
+/* Bitmap data */
+0x7C, 0x04, 0x78, 0x00, 0x7C, 0x44, 0x7C, 0x00, 0x04, 0x7C, 0x04,
+};
 
 const unsigned char FTX100IconGpsError[] = {
 // ------------------------------------

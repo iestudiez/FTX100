@@ -228,7 +228,7 @@ void ftx100_Draw(GUI_FTX100App_t *app)
 		break;
 	}
 
-	// Draw GPS Icon
+	// Draw GPS Icon (Simulation Mode)
 	// ------------------------------------------------------------------------
 	if (*app->pSimuMode)
 	{
@@ -236,11 +236,18 @@ void ftx100_Draw(GUI_FTX100App_t *app)
 		return;
 	}
 
-	// Draw GPS Icon
+	// Draw GPS Icon (Error)
 	// ------------------------------------------------------------------------
-	if (GNSS_Rmc.mode == GNSS_RMC_MODE_D || GNSS_Rmc.mode == GNSS_RMC_MODE_A || GNSS_Rmc.mode == GNSS_RMC_MODE_E)
-		GLCD_PutBitmap(59, 2, FTX100IconGpsOk, 0);
-	else
+	if (APP_ErrorCode & APP_ERROR_GPS)
+	{
 		GLCD_PutBitmap(59, 2, FTX100IconGpsError, 0);
+		return;
+	}
 
+	// Draw GPS Icon (Mode)
+	// ------------------------------------------------------------------------
+	if (GNSS_Rmc.mode == GNSS_RMC_MODE_N)
+		GLCD_PutBitmap(59, 2, FTX100IconGpsNotValid, 0);
+	else
+		GLCD_PutBitmap(59, 2, FTX100IconGpsOk, 0);
 }
