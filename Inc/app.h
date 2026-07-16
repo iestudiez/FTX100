@@ -77,7 +77,7 @@ extern uint16_t APP_TurbinePulses;
 extern uint16_t APP_CalibRevolutions;
 extern uint8_t APP_CalibProgress;
 // ----------------------------------------------------------------------------
-extern PID_Vars_t APP_PidMotor;
+extern PID1000_t APP_PidMotor;
 extern uint16_t APP_PidMaxInt;
 extern uint16_t APP_PidOffset;
 extern uint32_t APP_PidKp;

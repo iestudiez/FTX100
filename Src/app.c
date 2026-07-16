@@ -73,7 +73,7 @@ uint16_t APP_DisplaySpeed;
 uint16_t APP_DisplayMotorRpm;
 uint16_t APP_DisplayTurbineRpm;
 // ---------------------------
-PID_Vars_t APP_PidMotor;
+PID1000_t APP_PidMotor;
 uint16_t APP_PidMaxInt = 500;
 uint16_t APP_PidOffset = 0;
 uint32_t APP_PidKp;
