@@ -14,6 +14,7 @@
  ******************************************************************************
  */
 
+#include <string.h>
 #include "app.h"
 #include "eeprom.h"
 #include "indicators.h"
@@ -21,6 +22,8 @@
 #include "gnss.h"
 #include "global.h"
 #include "spi.h"
+#include "utils.h"
+#include "config.h"
 
 // Definitions
 // ----------------------------------------------------------------------------
@@ -29,7 +32,8 @@
 #define APP_DISPLAY_REFRESH_RATE		(10U)
 #define APP_MAX_TEMPERATURE				(60U)
 #define APP_MAX_TURBINE_RPM				(6000U)
-#define APP_PID_ALLOWED_ERR_TIME		(200U)
+#define APP_INPUT_RPM_SAMPLES			(7U)
+#define APP_PID_ALLOWED_ERR_TIME		(CONFIG_PID_ALLOWED_ERR_TIME)
 
 // Application public variables
 // =----------------------------------------------------------------------------
@@ -42,7 +46,7 @@ bool APP_CalibDone = false;
 bool APP_SimuMode = false;
 // ---------------------------
 uint8_t APP_ErrorCode = 0;
-uint8_t APP_NumNozzles;
+uint8_t APP_NumNozzles = CONFIG_NUM_NOZZLES;
 uint8_t APP_Eeprom[APP_EEPROM_BUFF_SIZE];
 // ---------------------------
 uint16_t APP_Speed;
@@ -50,23 +54,27 @@ uint16_t APP_MinSpeed;
 uint32_t APP_RpmSetpoint = 0;
 // ---------------------------
 uint16_t APP_Dose;
-uint16_t APP_DosePreset1;
-uint16_t APP_DosePreset2;
-uint16_t APP_DosePreset3;
-uint16_t APP_DosePreset4;
-uint16_t APP_DosePreset5;
+uint16_t APP_DosePreset1 = CONFIG_DOSE_1;
+uint16_t APP_DosePreset2 = CONFIG_DOSE_2;
+uint16_t APP_DosePreset3 = CONFIG_DOSE_3;
+uint16_t APP_DosePreset4 = CONFIG_DOSE_4;
+uint16_t APP_DosePreset5 = CONFIG_DOSE_5;
 uint8_t APP_DoseSelectedPreset = DOSE_PRESET_1;
 // ---------------------------
 // Calibration parameters
 uint16_t APP_CalibValue;
-uint16_t APP_CalibRevolutions = 10;
-uint16_t APP_CalibPwm = 200;
+uint16_t APP_CalibRevolutions = CONFIG_CALIB_REV;
+uint16_t APP_CalibPwm = CONFIG_CALIB_PWM;
 uint16_t APP_CalibRevCounter;
 uint8_t APP_CalibProgress;
 // ---------------------------
-uint16_t APP_Wingspan;
-uint16_t APP_MotorPulses;
-uint16_t APP_TurbinePulses;
+uint16_t APP_Wingspan = CONFIG_WINGSPAN;
+uint16_t APP_TurbinePulses = CONFIG_TURBINE_PULSES_REV;
+// ---------------------------
+uint16_t APP_MotorPulses = CONFIG_MOTOR_PULSES_REV;
+uint16_t APP_InputBuffer[APP_INPUT_RPM_SAMPLES];
+uint16_t APP_OrderedBuffer[APP_INPUT_RPM_SAMPLES];
+uint32_t APP_MotorRpm;
 // ---------------------------
 uint16_t APP_SimuSpeed;
 uint16_t APP_DisplaySpeed;
@@ -74,11 +82,12 @@ uint16_t APP_DisplayMotorRpm;
 uint16_t APP_DisplayTurbineRpm;
 // ---------------------------
 PID1000_t APP_PidMotor;
-uint16_t APP_PidMaxInt = 500;
-uint16_t APP_PidOffset = 0;
-uint32_t APP_PidKp;
-uint32_t APP_PidKi;
-uint32_t APP_PidKd;
+uint32_t APP_PidKp = CONFIG_PID_KP;
+uint32_t APP_PidKi = CONFIG_PID_KI;
+uint32_t APP_PidKd = CONFIG_PID_KD;
+uint16_t APP_PidMaxInt = CONFIG_PID_ITERM_MAX;
+uint16_t APP_PidOutMin = CONFIG_PID_OUT_MIN;
+uint16_t APP_PidOutMax = CONFIG_PID_OUT_MAX;
 
 // Private variables
 // -----------------------------------------------------------------------------
@@ -97,6 +106,8 @@ void app_DisplayValues(void);
 void app_MachineSpeed(void);
 void app_RpmSetpoint(void);
 void app_SelectDose(void);
+void app_FilterMotorRpm(void);
+void app_EmaFilter(uint32_t input, uint32_t *output, uint16_t alpha);
 
 /**
  * -----------------------------------------------------------------------------
@@ -115,12 +126,17 @@ void APP_Init(void)
 	APP_PidMotor.Kp = APP_PidKp;
 	APP_PidMotor.Ki = APP_PidKi;
 	APP_PidMotor.Kd = APP_PidKd;
+	APP_PidMotor.kpDiv = CONFIG_PID_KP_DIV;
+	APP_PidMotor.kiDiv = CONFIG_PID_KI_DIV;
+	APP_PidMotor.kdDiv = CONFIG_PID_KD_DIV;
+	APP_PidMotor.kdTime = 5;
 	APP_PidMotor.maxIntegral = APP_PidMaxInt;
-	APP_PidMotor.offset = APP_PidOffset;
+	APP_PidMotor.outputMin = APP_PidOutMin;
+	APP_PidMotor.outputMax = APP_PidOutMax;
 	APP_PidMotor.allowedErr = 5;
 	APP_PidMotor.pEnable = &APP_EnableMotor;
 	APP_PidMotor.pOutput = &PowerBoard.Out[0].DutyCycle;
-	APP_PidMotor.pFeedback = &PowerBoard.Freq[0].Rpm;
+	APP_PidMotor.pFeedback = &APP_MotorRpm;
 	APP_PidMotor.pSetpoint = &APP_RpmSetpoint;
 
 	// Set the LEDs and the screen backlight.
@@ -177,6 +193,9 @@ void APP_User(void)
 
 	// Estimate machine speed
 	app_MachineSpeed();
+
+	// Filter motor speed
+	app_FilterMotorRpm();
 
 	// Compute setpoint
 	app_RpmSetpoint();
@@ -275,7 +294,7 @@ void app_SaveConfiguration(void)
 	EEPROM_StoreWord(&APP_Eeprom[8], APP_DosePreset5);
 
 	EEPROM_StoreWord(&APP_Eeprom[10], APP_PidMaxInt);
-	EEPROM_StoreWord(&APP_Eeprom[12], APP_PidOffset);
+	EEPROM_StoreWord(&APP_Eeprom[12], APP_PidOutMin);
 	EEPROM_StoreWord(&APP_Eeprom[14], APP_PidKp);
 	EEPROM_StoreWord(&APP_Eeprom[16], APP_PidKi);
 	EEPROM_StoreWord(&APP_Eeprom[18], APP_PidKd);
@@ -314,7 +333,7 @@ void app_LoadConfiguration(void)
 	APP_DosePreset5 = EEPROM_GetWord(&APP_Eeprom[8]);
 
 	APP_PidMaxInt = EEPROM_GetWord(&APP_Eeprom[10]);
-	APP_PidOffset = EEPROM_GetWord(&APP_Eeprom[12]);
+	APP_PidOutMin = EEPROM_GetWord(&APP_Eeprom[12]);
 	APP_PidKp = EEPROM_GetWord(&APP_Eeprom[14]);
 	APP_PidKi = EEPROM_GetWord(&APP_Eeprom[16]);
 	APP_PidKd = EEPROM_GetWord(&APP_Eeprom[18]);
@@ -331,6 +350,26 @@ void app_LoadConfiguration(void)
 
 /**
  * -----------------------------------------------------------------------------
+ * @brief 	Smooth acquisition of hydraulic motor RPMs
+ * -----------------------------------------------------------------------------
+ */
+void app_FilterMotorRpm(void)
+{
+	// Move samples from the end of the buffer to the beginning
+	for (uint8_t i = 0; i < APP_INPUT_RPM_SAMPLES - 1; i++)
+		APP_InputBuffer[i] = APP_InputBuffer[i + 1];
+
+	// Add the new sample
+	APP_InputBuffer[APP_INPUT_RPM_SAMPLES - 1] = PowerBoard.Freq[0].Rpm;
+
+	// Apply median filter
+	memcpy(APP_OrderedBuffer, APP_InputBuffer, APP_INPUT_RPM_SAMPLES * sizeof(uint16_t));
+	quickSort(APP_OrderedBuffer, 0, APP_INPUT_RPM_SAMPLES - 1);
+	app_EmaFilter(APP_OrderedBuffer[(APP_INPUT_RPM_SAMPLES - 1) / 2], &APP_MotorRpm, 500);
+}
+
+/**
+ * -----------------------------------------------------------------------------
  * @brief 	Update application parameters
  * -----------------------------------------------------------------------------
  */
@@ -342,7 +381,8 @@ void app_UpdateParameters(void)
 	APP_PidMotor.Ki = APP_PidKi;
 	APP_PidMotor.Kd = APP_PidKd;
 	APP_PidMotor.maxIntegral = APP_PidMaxInt;
-	APP_PidMotor.offset = APP_PidOffset;
+	APP_PidMotor.outputMin = APP_PidOutMin;
+	APP_PidMotor.outputMax = APP_PidOutMax;
 }
 
 /**
@@ -445,7 +485,7 @@ void app_DisplayValues(void)
 	if (refreshRateCnt == APP_DISPLAY_REFRESH_RATE)
 	{
 		APP_DisplaySpeed = APP_Speed;
-		APP_DisplayMotorRpm = PowerBoard.Freq[0].Rpm / 10;
+		APP_DisplayMotorRpm = APP_MotorRpm / 10;
 
 		if (PowerBoard.Freq[1].Rpm < APP_MAX_TURBINE_RPM)
 			APP_DisplayTurbineRpm = PowerBoard.Freq[1].Rpm / 10;
@@ -523,4 +563,22 @@ void app_RpmSetpoint(void)
 		APP_RpmSetpoint = (APP_Speed * APP_Dose * APP_Wingspan) / (app_KQ * 6);
 	else
 		APP_RpmSetpoint = 0;
+}
+
+/**
+ * -----------------------------------------------------------------------------
+ * @brief 			Exponential media average filter
+ * -----------------------------------------------------------------------------
+ * @param input
+ * @param output
+ * @param alpha
+ * -----------------------------------------------------------------------------
+ */
+void app_EmaFilter(uint32_t input, uint32_t *output, uint16_t alpha)
+{
+	// Alpha, Max= 1000
+	if (alpha > 1000)
+		alpha = 1000;
+
+	*output = (alpha * input + (1000 - alpha) * (*output)) / 1000;
 }

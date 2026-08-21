@@ -13,6 +13,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stm32f4xx.h>
+#include <string.h>
+#include <stdio.h>
 #include "system_cx100.h"
 #include "indicators.h"
 #include "keyboard.h"
@@ -22,9 +24,18 @@
 #include "pwrboard.h"
 #include "gui.h"
 #include "app.h"
+#include "uart.h"
+
+// ----------------------------------------------------------------------------
+// TODO:
+// 		1.- Welcome Screen (LEDs and Logo, during GPS setup time)
+// 		2.- Password PID parameters
+//		3.-
+// ----------------------------------------------------------------------------
 
 // Definitions
 // ----------------------------------------------------------------------------
+#define DEBUG_PID_RS232
 
 // Global variables
 // ----------------------------------------------------------------------------
@@ -33,6 +44,8 @@
 // ----------------------------------------------------------------------------
 void UI_Update(void);
 void COMM_Update(void);
+void UartPlotterMode(void);
+void SERIAL_Init(void);
 
 int main()
 {
@@ -42,7 +55,7 @@ int main()
 	PWRBOARD_Init();
 	LCD_Init();
 	LCD_Clear();
-	GNSS_Init();
+	SERIAL_Init();
 	APP_Init();
 	GUI_Init();
 
@@ -82,9 +95,60 @@ void UI_Update(void)
 void COMM_Update(void)
 {
 	// RS233 Communications
-	GNSS_Update();
+	// -------------------------------------------------------------------------
+#ifdef DEBUG_PID_RS232
+	// Send plotter data
+	sprintf(UART_TxBuffer, " %d %d %d %d %d\n", (int) APP_RpmSetpoint, (int) APP_MotorRpm, (int) APP_PidMotor.priv.propTerm, (int) APP_PidMotor.priv.intgTerm, (int) APP_PidMotor.priv.dervTerm);
 
-	// CAN Communications (RX)
-	// CAN_ReadMsg(CAN1, &gCanMsgRx);
+	// Clear transfer complete flag
+	DMA1->HIFCR |= DMA_HIFCR_CTCIF6;
+
+	// Start DMA transfer
+	DMA1_Stream6->NDTR = strlen(UART_TxBuffer);
+	DMA_Stream_Enable(DMA1_Stream6);
+#else
+	// Process GPS data
+	GNSS_Update();
+#endif
+}
+/**
+ * -----------------------------------------------------------------------------
+ * @brief 		Initialize serial communication
+ * -----------------------------------------------------------------------------
+ */
+void SERIAL_Init(void)
+{
+#ifdef DEBUG_PID_RS232
+	UartPlotterMode();
+	UART_Enable(USART2);
+#else
+	GNSS_Init();
+#endif
+}
+
+/**
+ * -----------------------------------------------------------------------------
+ * @brief 		Configure UART to send plotter data
+ * -----------------------------------------------------------------------------
+ */
+void UartPlotterMode(void)
+{
+	UART_Config_t serialPort;
+
+	// UART Configuration
+	// ------------------
+	// UART2 Module
+	UART_Config_Reset(&serialPort);
+	serialPort.module = USART2;
+	serialPort.periph_clk = (uint32_t) RCC_APB1_CLK;
+	serialPort.baudrate = BR_115200;
+	serialPort.dir_tx = true;
+	serialPort.dir_rx = true;
+	serialPort.dma_tx = true;
+	serialPort.dma_rx = true;
+	serialPort.rxneie = false;
+	serialPort.tcie = false;
+	serialPort.idleie = false;
+	UART_Init(serialPort);
 }
 

@@ -73,13 +73,15 @@ extern uint16_t APP_DisplayTurbineRpm;
 // ----------------------------------------------------------------------------
 extern uint16_t APP_Wingspan;
 extern uint16_t APP_MotorPulses;
+extern uint32_t APP_MotorRpm;
 extern uint16_t APP_TurbinePulses;
 extern uint16_t APP_CalibRevolutions;
 extern uint8_t APP_CalibProgress;
 // ----------------------------------------------------------------------------
 extern PID1000_t APP_PidMotor;
 extern uint16_t APP_PidMaxInt;
-extern uint16_t APP_PidOffset;
+extern uint16_t APP_PidOutMin;
+extern uint16_t APP_PidOutMax;
 extern uint32_t APP_PidKp;
 extern uint32_t APP_PidKi;
 extern uint32_t APP_PidKd;

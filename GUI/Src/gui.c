@@ -247,13 +247,21 @@ void GUI_Init(void)
 	ListBox_Pid.item[3].decimalPos = 0;
 	ListBox_Pid.item[3].numDigits = 4;
 
-	// Offset
-	ListBox_Pid.item[4].sTile = "OFFSET";
-	ListBox_Pid.item[4].pInputVar = &APP_PidOffset;
-	ListBox_Pid.item[4].dataType = GUI_INT32;
+	// Minimum output
+	ListBox_Pid.item[4].sTile = "OUTPUT MIN.";
+	ListBox_Pid.item[4].pInputVar = &APP_PidOutMin;
+	ListBox_Pid.item[4].dataType = GUI_INT16;
 	ListBox_Pid.item[4].maxValue = 1000;
 	ListBox_Pid.item[4].decimalPos = 0;
 	ListBox_Pid.item[4].numDigits = 4;
+
+	// Maximum output
+	ListBox_Pid.item[5].sTile = "OUTPUT MAX.";
+	ListBox_Pid.item[5].pInputVar = &APP_PidOutMax;
+	ListBox_Pid.item[5].dataType = GUI_INT16;
+	ListBox_Pid.item[5].maxValue = 1000;
+	ListBox_Pid.item[5].decimalPos = 0;
+	ListBox_Pid.item[5].numDigits = 4;
 
 	// ------------------------------------------------------------------------
 	// MSGBOX SAVE CONFIGURATION
